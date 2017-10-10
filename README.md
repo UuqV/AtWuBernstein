@@ -20,4 +20,4 @@ the user who issued the command.
 ...
 A correct implementation of the algorithm will ensure that when a user views a tweet T in his or her timeline, the user also views all tweets that causally precede T that he has permission to view (is not blocked from viewing).
 "
-- http://www.cs.rpi.edu/~pattes3/dsa/DSA_Project1.pdf
+from http://www.cs.rpi.edu/~pattes3/dsa/DSA_Project1.pdf
