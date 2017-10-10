@@ -19,7 +19,7 @@ public class WuuInstance {
 		}
 		
 	}
-	public listen() {
+	public void listen() {
 		try (
 			Socket clientSocket = serverSocket.accept();     
 			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);                   
