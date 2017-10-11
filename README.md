@@ -18,6 +18,8 @@ who issued the command.
 4. unblock <username> : unblocks the specified username; allows the viewing of tweets of
 the user who issued the command.
 ...
+This implementation uses a configuration file that gives the IP addresses and ports that will be used for communication between all sites.
+...
 A correct implementation of the algorithm will ensure that when a user views a tweet T in his or her timeline, the user also views all tweets that causally precede T that he has permission to view (is not blocked from viewing).
 "
 from http://www.cs.rpi.edu/~pattes3/dsa/DSA_Project1.pdf

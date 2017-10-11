@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class WuuInstance {
 	ServerSocket socket;
-	int port;
+	Integer port;
 	ArrayList<Socket> clients;
 	ArrayList<Socket> hosts;
 	

@@ -3,9 +3,21 @@ import java.net.*;
 
 public class WuuBernstein {
 	public static void main(String args[]) {
-		WuuInstance wu1 = new WuuInstance(6969);
-		WuuInstance wu2 = new WuuInstance(3210);
-		wu2.connectTo(wu1.getHostName(), 6969);
-		wu1.connectTo(wu2.getHostName(), 3210);
+		WuuInstance wu = new WuuInstance(args[0]);
+		
+		try (BufferedReader br = new BufferedReader(new FileReader("instances.config")) ) {
+			String[] line;
+			
+			while (line = br.readLine().split(" ") != null) {
+				InetAddress host = new InetAddress(Integer.parseInt(line[0]));
+				if (host.getHostName() != wu.getHostName()) {
+					//Host name, host port
+					wu.connectTo(host.getHostName(), line[1]);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
+	
 }
