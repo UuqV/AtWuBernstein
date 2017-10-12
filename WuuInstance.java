@@ -14,7 +14,6 @@ public class WuuInstance {
 			ServerSocket serverSocket = new ServerSocket(port);
 		) {
 			socket = serverSocket;
-			listen();
 		} catch (IOException e) {
 			System.out.println("Exception caught while attempting to listen on port " + port);
 			System.out.println(e.getMessage());
