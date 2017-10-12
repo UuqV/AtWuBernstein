@@ -7,17 +7,22 @@ public class WuuBernstein {
 		WuuInstance wu = new WuuInstance(port);
 		
 		try (BufferedReader br = new BufferedReader(new FileReader("instances.config")) ) {
-			String[] line;
-			
-			while ((line = br.readLine().split(" ")).equals(null)) {
-				if (line[0] != wu.getHostName()) {
+			String line;
+			//Read the config file
+			while ( (line = br.readLine()) != null ) {
+				String[] tokens = line.split(" ");
+				InetAddress clientIP = InetAddress.getByName(tokens[0]);
+				System.out.println("clientIP = " + clientIP);
+				System.out.println("Local Host " + InetAddress.getLocalHost());
+				if ( !clientIP.equals(InetAddress.getLocalHost())) {
+					System.out.println("Will send message to " + clientIP);
 					//Host name, host port
-					Integer hostPort = Integer.parseInt(line[1]);
-					wu.connectTo(wu.getHostName(), hostPort);
-					wu.listen();
+					Integer hostPort = Integer.parseInt(tokens[1]);
+					wu.connectTo(clientIP.getHostAddress(), hostPort);
 				}
 			}
-		} catch (Exception e) {
+			wu.listen();
+		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
 	}

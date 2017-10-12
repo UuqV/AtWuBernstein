@@ -1,3 +1,5 @@
 instances.config
 WuBernstein.pem.txt
 *.class
+*.sh
+
