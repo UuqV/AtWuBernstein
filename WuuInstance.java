@@ -22,29 +22,39 @@ public class WuuInstance {
 		System.out.println("Listening on port " + port);
 		try (
 			ServerSocket serverSocket = new ServerSocket(port);
-			Socket clientSocket = serverSocket.accept();
-			) {
-				if (clientSocket != null) {
-					PrintWriter sendToClient = new PrintWriter(clientSocket.getOutputStream(), true);                   
-					BufferedReader receiveFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-					clients.add(clientSocket);
-					System.out.println("Received communication from client. Port " + clientSocket.getLocalPort());
-					sendToClient.println("Host received communication from client.");
-					receiveMessages(sendToClient, receiveFromClient);
-				}
-				else {
-					System.out.println("I'm lonely....");
-				}
+			) {					
+				socket = serverSocket;
+				Socket clientSocket = socket.accept();
+				clientSocket.setKeepAlive(true);
+				
+				receiveMessages(clientSocket);
 			} catch (IOException e) {
 				System.out.println("Exception caught listening for a connection to server on port " + port);
 				System.out.println(e.getMessage());
 			}
 	}
 	
-	public void receiveMessages(PrintWriter sendWriter, BufferedReader receiveReader) {
-		while (1) {
-			if (line = receiveReader.readLine() != null) {
-				System.out.println(line);
+	public void receiveMessages(Socket clientSocket) {
+		while (true) {
+			try {
+				if (clientSocket != null) {
+					PrintWriter sendToClient = new PrintWriter(clientSocket.getOutputStream(), true);                   
+					BufferedReader receiveFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+
+
+					clients.add(clientSocket);
+					System.out.println("Received communication from client. Port " + clientSocket.getLocalPort());
+					sendToClient.println("Host received communication from client.");
+
+					String line = receiveFromClient.readLine();
+					if (line != null) {
+						System.out.println(line);
+					}
+				}
+			}
+			catch (IOException e) {
+				System.out.println(e.getMessage());
 			}
 		}
 	}
@@ -57,7 +67,7 @@ public class WuuInstance {
 			if (hostSocket != null) {
 				PrintWriter sendToHost = new PrintWriter(hostSocket.getOutputStream(), true);
 				BufferedReader receiveFromHost = new BufferedReader(new InputStreamReader(hostSocket.getInputStream()));
-				sendToHost.println("Client port " + port + "connected to host " + hostPort + ".");
+				sendToHost.println("Client port " + port + " connected to host " + hostPort + ".");
 				hosts.add(hostSocket);
 				System.out.println("Connected self to host " + host);
 			}
