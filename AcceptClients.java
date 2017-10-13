@@ -1,12 +1,18 @@
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.lang.*;
 
 
 public class AcceptClients extends Thread {
 
-    public void run(ServerSocket socket) {
-			return socket.accept();
+    public Socket run(ServerSocket socket) {
+			try {
+				return socket.accept();
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
+			return null;
     }
 
 }
