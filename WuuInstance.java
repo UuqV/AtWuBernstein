@@ -5,8 +5,8 @@ import java.util.ArrayList;
 public class WuuInstance {
 	ServerSocket socket;
 	Integer port;
-	ArrayList<Socket> clients;
-	ArrayList<Socket> hosts;
+	ArrayList<Socket> clients; //sends
+	ArrayList<Socket> hosts; //receives
 	
 	public WuuInstance(Integer portNumber) {
 		port = portNumber;		
@@ -28,8 +28,9 @@ public class WuuInstance {
 					PrintWriter sendToClient = new PrintWriter(clientSocket.getOutputStream(), true);                   
 					BufferedReader receiveFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 					clients.add(clientSocket);
-					sendToClient.println("Host received communication from client.");
 					System.out.println("Received communication from client. Port " + clientSocket.getLocalPort());
+					sendToClient.println("Host received communication from client.");
+					receiveMessages(sendToClient, receiveFromClient);
 				}
 				else {
 					System.out.println("I'm lonely....");
@@ -38,6 +39,14 @@ public class WuuInstance {
 				System.out.println("Exception caught listening for a connection to server on port " + port);
 				System.out.println(e.getMessage());
 			}
+	}
+	
+	public void receiveMessages(PrintWriter sendWriter, BufferedReader receiveReader) {
+		while (1) {
+			if (line = receiveReader.readLine() != null) {
+				System.out.println(line);
+			}
+		}
 	}
 	
 	public void connectTo(String host, Integer hostPort) {
