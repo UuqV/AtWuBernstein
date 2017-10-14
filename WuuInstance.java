@@ -53,7 +53,7 @@ public class WuuInstance {
 
 					String line = receiveFromClient.readLine();
 					if (line != null) {
-						System.out.println(line);
+						processMessage(line);
 					}
 				}
 			}
@@ -61,6 +61,10 @@ public class WuuInstance {
 				System.out.println(e.getMessage());
 			}
 		}
+	}
+	
+	public void processMessage(String message) {
+		
 	}
 	
 	public void connectTo(String host, Integer hostPort) {
