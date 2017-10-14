@@ -14,5 +14,9 @@ public class AcceptClients extends Thread {
 			}
 			return null;
     }
+		
+		public static void main(String args[]) {
+			(new AcceptClients()).start();
+		}
 
 }
