@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.util.concurrent.*;
 
 public class WuuBernstein {
 	public static void main(String args[]) {
@@ -24,6 +25,7 @@ public class WuuBernstein {
 				}
 			}
 			wu.listen();
+			wu.threadPool.shutdown();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}

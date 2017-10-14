@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.lang.*;
+import java.util.concurrent.*;
 
 public class WuuInstance {
 	ServerSocket socket;
@@ -16,11 +17,14 @@ public class WuuInstance {
 
 	Dictionary<Integer, ArrayList<Integer>> blockList;
 	
+	ExecutorService threadPool;
+	
 	public WuuInstance(Integer portNumber, String name) {
 		username = name;
 		port = portNumber;		
 		clients = new ArrayList<Socket>();
 		hosts = new ArrayList<Socket>();
+		threadPool = Executors.newCachedThreadPool();
 
 		//TODO: Don't hard code size of array
 		tsMatrix = new ArrayList<ArrayList<Integer>>();
@@ -48,9 +52,6 @@ public class WuuInstance {
 		) {					
 			socket = serverSocket;
 			
-			
-			AcceptClients accept = new AcceptClients();
-			
 			while (true) {
 
 
@@ -60,7 +61,7 @@ public class WuuInstance {
 
 
 				receiveMessages();
-				Socket clientSocket = accept.run(socket);
+				Socket clientSocket = acceptConnect();
 				if (clientSocket != null) {
 					clients.add(clientSocket);
 					clientSocket = null;
@@ -70,6 +71,18 @@ public class WuuInstance {
 			System.out.println("Exception caught listening for a connection to server on port " + port);
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	public Socket acceptConnect() throws IOException {
+        // create an open ended thread-pool
+                // wait for a client to connect
+				try {
+					Future<Socket> result = threadPool.submit(new AcceptClients(socket));
+					return result.get(10, TimeUnit.MILLISECONDS);
+				} catch (Exception e) {
+				
+				}
+				return null;
 	}
 
 	public ArrayList<EventRecord> getLogDiff(int proc) { //TODO
@@ -151,4 +164,23 @@ public class WuuInstance {
 		}
 	}
 	
+	public static class AcceptClients implements Callable<Socket> {
+		ServerSocket server;
+
+		public AcceptClients(ServerSocket s) {
+			server = s;
+		}
+		
+		@Override
+	    public Socket call() throws Exception {
+				try {
+					return server.accept();
+				} catch (IOException e) {
+					System.out.println(e.getMessage());
+				}
+				return null;
+	    }
+		
+
+	}
 }
