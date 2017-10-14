@@ -8,8 +8,14 @@ public class WuuInstance {
 	Integer port;
 	ArrayList<Socket> clients; //sends
 	ArrayList<Socket> hosts; //receives
+
+	String username; 
+ 
+	ArrayList<ArrayList<Integer>> tsMatrix;
+	ArrayList<EventRecord> log;
 	
-	public WuuInstance(Integer portNumber) {
+	public WuuInstance(Integer portNumber, String name) {
+		username = name;
 		port = portNumber;		
 		clients = new ArrayList<Socket>();
 		hosts = new ArrayList<Socket>();
@@ -17,6 +23,10 @@ public class WuuInstance {
 	
 	public String getHostName() {
 		return socket.getInetAddress().getHostName();
+	}
+
+	public Boolean hasRecord(EventRecord eR, int k) {
+		return false;
 	}
 	
 	public void listen() {
@@ -41,6 +51,12 @@ public class WuuInstance {
 				System.out.println("Exception caught listening for a connection to server on port " + port);
 				System.out.println(e.getMessage());
 			}
+	}
+
+	public void sendMessage(ArrayList<EventRecord> log) { //TODO:ESU
+		try {
+			
+		}
 	}
 	
 	public void receiveMessages() {
