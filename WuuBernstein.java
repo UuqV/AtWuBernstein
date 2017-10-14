@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.*;
 import java.net.*;
 
 public class WuuBernstein {
@@ -13,10 +14,10 @@ public class WuuBernstein {
 			while ( (line = br.readLine()) != null ) {
 				String[] tokens = line.split(" ");
 				InetAddress clientIP = InetAddress.getByName(tokens[0]);
-				System.out.println("clientIP = " + clientIP);
-				System.out.println("Local Host " + InetAddress.getLocalHost());
+				//System.out.println("clientIP = " + clientIP);
+				//System.out.println("Local Host " + InetAddress.getLocalHost());
 				if ( !clientIP.equals(InetAddress.getLocalHost())) {
-					System.out.println("Will send message to " + clientIP);
+					//System.out.println("Will connect to " + clientIP);
 					//Host name, host port
 					Integer hostPort = Integer.parseInt(tokens[1]);
 					wu.connectTo(clientIP.getHostAddress(), hostPort);
