@@ -4,7 +4,8 @@ import java.net.*;
 public class WuuBernstein {
 	public static void main(String args[]) {
 		Integer port = Integer.parseInt(args[0]);
-		WuuInstance wu = new WuuInstance(port);
+		String username = args[1];
+		WuuInstance wu = new WuuInstance(port, username);
 		
 		try (BufferedReader br = new BufferedReader(new FileReader("instances.config")) ) {
 			String line;
