@@ -4,11 +4,13 @@ import java.util.ArrayList;
 public class Message implements Serializable{
 	ArrayList<EventRecord> log;
 	ArrayList<ArrayList<Integer>> tsMatrix;
+	Integer id;
 
 	//does not deep copy
-	public Message(ArrayList<EventRecord> l, ArrayList<ArrayList<Integer>> ts) {
+	public Message(ArrayList<EventRecord> l, ArrayList<ArrayList<Integer>> ts, Integer senderID) {
 		log = l;
 		tsMatrix = ts;
+		id = senderID;
 	}
 
 	public byte[] toBytes() {

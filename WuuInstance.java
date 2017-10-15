@@ -103,7 +103,7 @@ public class WuuInstance {
 		
 
 		for (int i = 0; i < hosts.size(); i++) {
-			Message message = new Message(getLogDiff(i), tsMatrix);
+			Message message = new Message(getLogDiff(i), tsMatrix, id);
 			byte[] byteMessage = message.toBytes();
 			try {
 				DataOutputStream dOut = new DataOutputStream(hosts.get(i).getOutputStream());
@@ -130,6 +130,7 @@ public class WuuInstance {
 
 						Message message = Message.fromBytes(byteMessage);
 						message.printMessage();
+						updateMatrix(message.log, message.id, message.tsMatrix);
 						//TODO: Do something with message, now that it's received
 					}
 
@@ -141,19 +142,20 @@ public class WuuInstance {
 		}
 	}
 	
-	public ArrayList<ArrayList<Integer>> updateMatrix(ArrayList<EventRecord> clientLog, Integer clientid, ArrayList<ArrayList<Integer>> clientMatrix) {
-		for (i = 0; i < tsMatrix.size(); i++) {
-			tsMatrix[id][i] = Math.max(tsMatrix[id][i], clientMatrix[clientid][i]);
+	public void updateMatrix(ArrayList<EventRecord> clientLog, Integer clientid, ArrayList<ArrayList<Integer>> clientMatrix) {
+		for (int i = 0; i < tsMatrix.size(); i++) {
+			ArrayList<Integer> row = tsMatrix.get(id);
+			row.set(i, Math.max(tsMatrix.get(id).get(i), clientMatrix.get(clientid).get(i) ) );
+			tsMatrix.set(id, row);
 		}
-		for (i = 0; i < tsMatrix.size(); i++) {
-			for (j = 0; j < tsMatrix.size(); j++) {
-				tsMatrix[i][j] = Math.max(tsMatrix[i][j], clientMatrix[i][j])
+		for (int i = 0; i < tsMatrix.size(); i++) {
+			for (int j = 0; j < tsMatrix.size(); j++) {
+				ArrayList<Integer> row = tsMatrix.get(i);
+				row.set(j, Math.max(tsMatrix.get(i).get(j), clientMatrix.get(i).get(j) ) );
+				tsMatrix.set(id, row);
 			}
 		}
 		
-		if (tsMatrix.size() <= 0) {
-			return;
-		}
 		for (int i = 0; i < tsMatrix.size(); i++) {
 			System.out.print("[\t");
 			for (int j = 0; j < tsMatrix.get(i).size(); j++) {
@@ -165,6 +167,7 @@ public class WuuInstance {
 		for (int i = 0; i < log.size(); i++) {
 			System.out.println("Event");
 		}
+		
 	}
 	
 	public void connectTo(String host, Integer hostPort) {
