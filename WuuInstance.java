@@ -88,7 +88,7 @@ public class WuuInstance {
                 // wait for a client to connect
 				try {
 					Future<Socket> result = threadPool.submit(new AcceptClients(socket));
-					return result.get(100, TimeUnit.MILLISECONDS);
+					return result.get(10, TimeUnit.MILLISECONDS);
 				} catch (Exception e) {
 				
 				}
