@@ -46,6 +46,7 @@ public class WuuInstance {
 	}
 	
 	public void listen() {
+		Socket clientSocket = null;
 		System.out.println("Listening on port " + port);
 		try (
 			ServerSocket serverSocket = new ServerSocket(port);
@@ -61,7 +62,9 @@ public class WuuInstance {
 
 
 				receiveMessages();
-				Socket clientSocket = acceptConnect();
+				if (clientSocket == null) {
+					clientSocket = acceptConnect();
+				}
 				if (clientSocket != null) {
 					clients.add(clientSocket);
 					clientSocket = null;
