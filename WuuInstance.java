@@ -94,7 +94,6 @@ public class WuuInstance {
 					}
 				}
 				if (clientSocket != null) {
-					clientSocket.setKeepAlive(true);
 					Integer clientID = addressBook.get(clientSocket.getInetAddress().getHostName());
 					clients[clientID] = clientSocket;
 					clientSocket = null;
@@ -134,10 +133,10 @@ public class WuuInstance {
 				outStreams[i].write(byteMessage);
 			}
 			catch (IOException e) {
-				//TODO: SOCKET IS CLOSED, CANNOT SEND
-				System.out.println(e.getMessage());
+
 			}
 		}
+
 	}
 	
 	public void receiveMessages() {
@@ -146,10 +145,10 @@ public class WuuInstance {
 				if (clients[i] != null) {
 					inStreams[i] = new DataInputStream(clients[i].getInputStream());
 					
-					if (inStreams[i].available() != 0) {
-						int length = inStreams[i].readInt();
+					if (dIn.available() != 0) {
+						int length = dIn.readInt();
 						byte[] byteMessage = new byte[length];
-						inStreams[i].readFully(byteMessage, 0, byteMessage.length);
+						dIn.readFully(byteMessage, 0, byteMessage.length);
 
 						Message message = Message.fromBytes(byteMessage);
 						message.printMessage();
@@ -205,7 +204,6 @@ public class WuuInstance {
 				//BufferedReader receiveFromHost = new BufferedReader(new InputStreamReader(hostSocket.getInputStream()));
 				//sendToHost.println("Client port " + port + " connected to host " + hostPort + ".");
 				hosts[hostID] = hostSocket;
-				outStreams[hostID] = new DataOutputStream(hosts[hostID].getOutputStream());
 				System.out.println("Connected self to host " + host);
 			}
 			else {
