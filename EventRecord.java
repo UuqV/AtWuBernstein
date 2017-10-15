@@ -8,4 +8,5 @@ public class EventRecord implements Serializable {
 	String username; //user that does the thing
 	String content; //either: user that is blocked, or tweet text
 	long realtime;
+	Integer id;
 }

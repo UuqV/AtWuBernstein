@@ -8,6 +8,7 @@ public class WuuInstance {
 	ServerSocket socket;
 	Integer port;
 	Boolean listening;
+	Boolean newCommand;
 	ArrayList<Socket> clients; //sends
 	ArrayList<Socket> hosts; //receives
 	Integer id;
@@ -42,8 +43,8 @@ public class WuuInstance {
 		return socket.getInetAddress().getHostName();
 	}
 
-	public Boolean hasRecord(EventRecord eR, int k) {
-		return false;
+	public Boolean hasRecord(EventRecord eR, int clientID) {
+		return tsMatrix.get(clientID).get(eR.id) >= eR.timestamp;
 	}
 	
 	public void listen() {
@@ -58,6 +59,15 @@ public class WuuInstance {
 
 
 				//TODO: Only call when necessary
+				if (!newCommand) {
+					cmd = commandListen();
+					if (!cmd) {
+						newCommand = true;
+					}
+					else {
+						newCommand = false;
+					}
+				}
 				sendMessage();
 
 
@@ -83,7 +93,7 @@ public class WuuInstance {
 		}
 	}
 	
-	public Socket acceptConnect() throws IOException {
+	public Socket acceptConnect() {
         // create an open ended thread-pool
                 // wait for a client to connect
 				try {
@@ -116,6 +126,18 @@ public class WuuInstance {
 		}
 
 	}
+	
+	public String commandListen() {
+		try {
+			Future<String> result = threadPool.submit(new AcceptInput());
+			return result.get(10, TimeUnit.MILLISECONDS);
+
+		} catch (Exception e) {
+		
+		}
+		return null;
+	}
+	
 	
 	public void receiveMessages() {
 		for (int i = 0; i < clients.size(); i++) {
@@ -210,7 +232,25 @@ public class WuuInstance {
 				}
 				return null;
 	    }
+
+	}
+	
+	public static class AcceptInput implements Callable<String> {
+		Scanner reader;
+
+		public AcceptInput() {
+			reader = new Scanner(System.in);
+		}
 		
+		@Override
+	    public String call() throws Exception {
+				try {
+					return reader.next();
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+				}
+				return null;
+	    }
 
 	}
 }
