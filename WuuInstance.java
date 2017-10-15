@@ -9,8 +9,18 @@ public class WuuInstance {
 	Integer port;
 	Boolean listening;
 	Boolean newCommand;
-	ArrayList<Socket> clients; //sends
-	ArrayList<Socket> hosts; //receives
+
+	HashMap<String, Integer> addressBook;
+
+	//ArrayList<Socket> clients; //sends
+	//ArrayList<DataInputStream> inStreams;
+	//ArrayList<Socket> hosts; //receives
+	//ArrayList<DataOutputStream> outStreams;
+	Socket[] clients; //sends
+	DataInputStream[] inStreams;
+	Socket[] hosts; //receives
+	DataOutputStream[] outStreams;
+
 	Integer id;
 	String username; 
  
@@ -23,9 +33,15 @@ public class WuuInstance {
 	
 	public WuuInstance(Integer portNumber, String name, Integer n) {
 		username = name;
-		port = portNumber;		
-		clients = new ArrayList<Socket>();
-		hosts = new ArrayList<Socket>();
+		port = portNumber;	
+
+		addressBook = new HashMap<String, Integer>();	
+
+		clients = new Socket[n];
+		inStreams = new DataInputStream[n];
+		hosts = new Socket[n];
+		outStreams = new DataOutputStream[n];
+
 		threadPool = Executors.newCachedThreadPool();
 		listening = false;
 		//TODO: Don't hard code size of array
@@ -37,6 +53,10 @@ public class WuuInstance {
 			}
 			tsMatrix.add(timevec);
 		}
+	}
+
+	public void setAddressBook(HashMap<String, Integer> adb) {
+		addressBook = adb;
 	}
 	
 	public String getHostName() {
@@ -74,7 +94,8 @@ public class WuuInstance {
 					}
 				}
 				if (clientSocket != null) {
-					clients.add(clientSocket);
+					Integer clientID = addressBook.get(clientSocket.getInetAddress().getHostName());
+					clients[clientID] = clientSocket;
 					clientSocket = null;
 				}
 			}
@@ -103,11 +124,12 @@ public class WuuInstance {
 	public void sendMessage() { //TODO:ESU
 		
 
-		for (int i = 0; i < hosts.size(); i++) {
+		for (int i = 0; i < hosts.length; i++) {
+			if (hosts[i] == null) { continue; }
 			Message message = new Message(getLogDiff(i), tsMatrix, id);
 			byte[] byteMessage = message.toBytes();
 			try {
-				DataOutputStream dOut = new DataOutputStream(hosts.get(i).getOutputStream());
+				DataOutputStream dOut = new DataOutputStream(hosts[i].getOutputStream());
 				dOut.writeInt(byteMessage.length);
 				dOut.write(byteMessage);
 			}
@@ -119,10 +141,10 @@ public class WuuInstance {
 	}
 	
 	public void receiveMessages() {
-		for (int i = 0; i < clients.size(); i++) {
+		for (int i = 0; i < clients.length; i++) {
 			try {
-				if (clients.get(i) != null) {
-					DataInputStream dIn = new DataInputStream(clients.get(i).getInputStream());
+				if (clients[i] != null) {
+					DataInputStream dIn = new DataInputStream(clients[i].getInputStream());
 					
 					if (dIn.available() != 0) {
 						int length = dIn.readInt();
@@ -171,17 +193,18 @@ public class WuuInstance {
 		
 	}
 	
-	public void connectTo(String host, Integer hostPort) {
+	public void connectTo(String host, Integer hostPort, Integer hostID) {
 		System.out.println("Connecting to host " + host);
 		try (
 			Socket hostSocket = new Socket(host, hostPort);
+			Socket clientSocket = new Socket();
 		) {
 			if (hostSocket != null) {
 				hostSocket.setKeepAlive(true);
 				//PrintWriter sendToHost = new PrintWriter(hostSocket.getOutputStream(), true);
 				//BufferedReader receiveFromHost = new BufferedReader(new InputStreamReader(hostSocket.getInputStream()));
 				//sendToHost.println("Client port " + port + " connected to host " + hostPort + ".");
-				hosts.add(hostSocket);
+				hosts[hostID] = hostSocket;
 				System.out.println("Connected self to host " + host);
 			}
 			else {

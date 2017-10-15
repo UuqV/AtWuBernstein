@@ -7,7 +7,7 @@ public class WuuBernstein {
 	public static void main(String args[]) {
 		Integer port = Integer.parseInt(args[0]);
 		String username = args[1];
-		
+		Map<String, Integer> addressBook = new HashMap<String, Integer>();
 		
 		try (BufferedReader br = new BufferedReader(new FileReader("instances.config")) ) {
 			WuuInstance wu = new WuuInstance(port, username, Integer.parseInt(br.readLine()));
@@ -17,15 +17,19 @@ public class WuuBernstein {
 			while ( (line = br.readLine()) != null ) {
 				String[] tokens = line.split(" ");
 				InetAddress clientIP = InetAddress.getByName(tokens[0]);
+				Integer hostPort = Integer.parseInt(tokens[1]);
 				//System.out.println("clientIP = " + clientIP);
 				//System.out.println("Local Host " + InetAddress.getLocalHost());
 				if ( !clientIP.equals(InetAddress.getLocalHost())) {
 					wu.id = lineCount;
 					//System.out.println("Will connect to " + clientIP);
 					//Host name, host port
-					Integer hostPort = Integer.parseInt(tokens[1]);
-					wu.connectTo(clientIP.getHostAddress(), hostPort);
+					
+					wu.connectTo(clientIP.getHostAddress(), hostPort, lineCount);
 				}
+				//insert address into addressbook
+				addressBook.put(clientIP.getHostAddress(), lineCount);
+
 				lineCount++;
 			}
 			wu.listen();
