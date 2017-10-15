@@ -10,7 +10,7 @@ public class WuuInstance {
 	Boolean listening;
 	ArrayList<Socket> clients; //sends
 	ArrayList<Socket> hosts; //receives
-
+	Integer id;
 	String username; 
  
 	ArrayList<ArrayList<Integer>> tsMatrix;
@@ -20,7 +20,7 @@ public class WuuInstance {
 	
 	ExecutorService threadPool;
 	
-	public WuuInstance(Integer portNumber, String name) {
+	public WuuInstance(Integer portNumber, String name, Integer n) {
 		username = name;
 		port = portNumber;		
 		clients = new ArrayList<Socket>();
@@ -29,9 +29,9 @@ public class WuuInstance {
 		listening = false;
 		//TODO: Don't hard code size of array
 		tsMatrix = new ArrayList<ArrayList<Integer>>();
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < n; i++) {
 			ArrayList<Integer> timevec = new ArrayList<Integer>();
-			for (int j = 0; j < 3; j++) {
+			for (int j = 0; j < n; j++) {
 				timevec.add(0);
 			}
 			tsMatrix.add(timevec);
