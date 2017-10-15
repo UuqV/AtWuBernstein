@@ -94,6 +94,7 @@ public class WuuInstance {
 					}
 				}
 				if (clientSocket != null) {
+					clientSocket.setKeepAlive(true);
 					Integer clientID = addressBook.get(clientSocket.getInetAddress().getHostName());
 					clients[clientID] = clientSocket;
 					clientSocket = null;
@@ -129,27 +130,26 @@ public class WuuInstance {
 			Message message = new Message(getLogDiff(i), tsMatrix, id);
 			byte[] byteMessage = message.toBytes();
 			try {
-				DataOutputStream dOut = new DataOutputStream(hosts[i].getOutputStream());
-				dOut.writeInt(byteMessage.length);
-				dOut.write(byteMessage);
+				outStreams[i].writeInt(byteMessage.length);
+				outStreams[i].write(byteMessage);
 			}
 			catch (IOException e) {
-
+				//TODO: SOCKET IS CLOSED, CANNOT SEND
+				System.out.println(e.getMessage());
 			}
 		}
-
 	}
 	
 	public void receiveMessages() {
 		for (int i = 0; i < clients.length; i++) {
 			try {
 				if (clients[i] != null) {
-					DataInputStream dIn = new DataInputStream(clients[i].getInputStream());
+					inStreams[i] = new DataInputStream(clients[i].getInputStream());
 					
-					if (dIn.available() != 0) {
-						int length = dIn.readInt();
+					if (inStreams[i].available() != 0) {
+						int length = inStreams[i].readInt();
 						byte[] byteMessage = new byte[length];
-						dIn.readFully(byteMessage, 0, byteMessage.length);
+						inStreams[i].readFully(byteMessage, 0, byteMessage.length);
 
 						Message message = Message.fromBytes(byteMessage);
 						message.printMessage();
@@ -205,6 +205,7 @@ public class WuuInstance {
 				//BufferedReader receiveFromHost = new BufferedReader(new InputStreamReader(hostSocket.getInputStream()));
 				//sendToHost.println("Client port " + port + " connected to host " + hostPort + ".");
 				hosts[hostID] = hostSocket;
+				outStreams[hostID] = new DataOutputStream(hosts[hostID].getOutputStream());
 				System.out.println("Connected self to host " + host);
 			}
 			else {
