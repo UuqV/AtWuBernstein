@@ -60,8 +60,8 @@ public class WuuInstance {
 
 				//TODO: Only call when necessary
 				if (!newCommand) {
-					cmd = commandListen();
-					if (!cmd) {
+					String cmd = commandListen();
+					if (cmd != null) {
 						newCommand = true;
 					}
 					else {
