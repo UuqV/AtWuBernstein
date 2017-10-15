@@ -118,8 +118,6 @@ public class WuuInstance {
 	}
 	
 	public void receiveMessages() {
-		System.out.println("# Clients: " + clients.size());
-		System.out.println("# Hosts: " + hosts.size());
 		for (int i = 0; i < clients.size(); i++) {
 			try {
 				if (clients.get(i) != null) {
@@ -134,19 +132,38 @@ public class WuuInstance {
 						message.printMessage();
 						//TODO: Do something with message, now that it's received
 					}
-					//PrintWriter sendToClient = new PrintWriter(clients.get(i).getOutputStream(), true);                   
-					//BufferedReader receiveFromClient = new BufferedReader(new InputStreamReader(clients.get(i).getInputStream()));
-					//System.out.println("Received communication from client. Port " + clients.get(i).getLocalPort());
 
-					//String line = receiveFromClient.readLine();
-					//if (line != null) {
-					//	System.out.println(line);
-					//}
 				}
 			}
 			catch (Exception e) {
 				System.out.println(e.getMessage());
 			}
+		}
+	}
+	
+	public ArrayList<ArrayList<Integer>> updateMatrix(ArrayList<EventRecord> clientLog, Integer clientid, ArrayList<ArrayList<Integer>> clientMatrix) {
+		for (i = 0; i < tsMatrix.size(); i++) {
+			tsMatrix[id][i] = Math.max(tsMatrix[id][i], clientMatrix[clientid][i]);
+		}
+		for (i = 0; i < tsMatrix.size(); i++) {
+			for (j = 0; j < tsMatrix.size(); j++) {
+				tsMatrix[i][j] = Math.max(tsMatrix[i][j], clientMatrix[i][j])
+			}
+		}
+		
+		if (tsMatrix.size() <= 0) {
+			return;
+		}
+		for (int i = 0; i < tsMatrix.size(); i++) {
+			System.out.print("[\t");
+			for (int j = 0; j < tsMatrix.get(i).size(); j++) {
+				System.out.print(tsMatrix.get(i).get(j) + "\t");
+			}
+			System.out.print("]\n");
+		}
+		System.out.println();
+		for (int i = 0; i < log.size(); i++) {
+			System.out.println("Event");
 		}
 	}
 	
