@@ -2,13 +2,24 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.lang.*;
+import java.util.concurrent.*;
 
 public class WuuInstance {
 	ServerSocket socket;
 	Integer port;
-	ArrayList<Socket> clients; //sends
-	ArrayList<Socket> hosts; //receives
+	Boolean listening;
+<<<<<<< HEAD
 
+=======
+	Boolean newCommand;
+>>>>>>> 94561c82008e3b0d2638bd4deca5b30db104038e
+	ArrayList<Socket> clients; //sends
+	ArrayList<DataInputStream> inStreams;
+
+	ArrayList<Socket> hosts; //receives
+	ArrayList<DataOutputStream> outStreams;
+
+	Integer id;
 	String username; 
  
 	ArrayList<ArrayList<Integer>> tsMatrix;
@@ -16,17 +27,24 @@ public class WuuInstance {
 
 	Dictionary<Integer, ArrayList<Integer>> blockList;
 	
-	public WuuInstance(Integer portNumber, String name) {
+	ExecutorService threadPool;
+	
+	public WuuInstance(Integer portNumber, String name, Integer n) {
 		username = name;
-		port = portNumber;		
-		clients = new ArrayList<Socket>();
-		hosts = new ArrayList<Socket>();
+		port = portNumber;
 
-		//TODO: Don't hard code size of array
+		clients = new ArrayList<Socket>(Collections.nCopies(n, null));
+		inStreams = new ArrayList<DataInputStream>(Collections.nCopies(n, null));
+		hosts = new ArrayList<Socket>(Collections.nCopies(n, null));
+		outStreams = new ArrayList<DataOutputStream>(Collections.nCopies(n, null));
+		
+		threadPool = Executors.newCachedThreadPool();
+		listening = false;
+
 		tsMatrix = new ArrayList<ArrayList<Integer>>();
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < n; i++) {
 			ArrayList<Integer> timevec = new ArrayList<Integer>();
-			for (int j = 0; j < 3; j++) {
+			for (int j = 0; j < n; j++) {
 				timevec.add(0);
 			}
 			tsMatrix.add(timevec);
@@ -37,30 +55,45 @@ public class WuuInstance {
 		return socket.getInetAddress().getHostName();
 	}
 
-	public Boolean hasRecord(EventRecord eR, int k) {
-		return false;
+	public Boolean hasRecord(EventRecord eR, int clientID) {
+		return tsMatrix.get(clientID).get(eR.id) >= eR.timestamp;
 	}
 	
 	public void listen() {
+		Socket clientSocket = null;
 		System.out.println("Listening on port " + port);
 		try (
 			ServerSocket serverSocket = new ServerSocket(port);
 		) {					
 			socket = serverSocket;
 			
-			
-			AcceptClients accept = new AcceptClients();
-			
 			while (true) {
 
 
 				//TODO: Only call when necessary
+				if (!newCommand) {
+					String cmd = commandListen();
+					if (cmd != null) {
+						newCommand = true;
+					}
+					else {
+						newCommand = false;
+					}
+				}
 				sendMessage();
 
 
 
 				receiveMessages();
-				Socket clientSocket = accept.run(socket);
+				if (listening == false) {
+					clientSocket = acceptConnect();
+					if (clientSocket == null) {
+						listening = true;
+					}
+					else {
+						listening = false;
+					}
+				}
 				if (clientSocket != null) {
 					clients.add(clientSocket);
 					clientSocket = null;
@@ -71,32 +104,56 @@ public class WuuInstance {
 			System.out.println(e.getMessage());
 		}
 	}
+	
+	public Socket acceptConnect() {
+        // create an open ended thread-pool
+        // wait for a client to connect
+		try {
+			Future<Socket> result = threadPool.submit(new AcceptClients(socket));
+			return result.get(10, TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+		
+		}
+		return null;
+	}
 
 	public ArrayList<EventRecord> getLogDiff(int proc) { //TODO
 		return new ArrayList<EventRecord>();
 	}
 
-	public void sendMessage() { //TODO:ESU
+	public void sendMessage() { //TODO
 		
 
 		for (int i = 0; i < hosts.size(); i++) {
-			Message message = new Message(getLogDiff(i), tsMatrix);
+			Message message = new Message(getLogDiff(i), tsMatrix, id);
 			byte[] byteMessage = message.toBytes();
 			try {
+				//System.out.println("Sending Message: ");
+				//message.printMessage();
 				DataOutputStream dOut = new DataOutputStream(hosts.get(i).getOutputStream());
 				dOut.writeInt(byteMessage.length);
 				dOut.write(byteMessage);
 			}
 			catch (IOException e) {
-
+				System.out.println(e.getMessage());
 			}
 		}
 
 	}
 	
+	public String commandListen() {
+		try {
+			Future<String> result = threadPool.submit(new AcceptInput());
+			return result.get(10, TimeUnit.MILLISECONDS);
+
+		} catch (Exception e) {
+		
+		}
+		return null;
+	}
+	
+	
 	public void receiveMessages() {
-		System.out.println("# Clients: " + clients.size());
-		System.out.println("# Hosts: " + hosts.size());
 		for (int i = 0; i < clients.size(); i++) {
 			try {
 				if (clients.get(i) != null) {
@@ -107,24 +164,12 @@ public class WuuInstance {
 						byte[] byteMessage = new byte[length];
 						dIn.readFully(byteMessage, 0, byteMessage.length);
 
-<<<<<<< HEAD
 						Message message = Message.fromBytes(byteMessage);
 						message.printMessage();
+						updateMatrix(message.log, message.id, message.tsMatrix);
 						//TODO: Do something with message, now that it's received
-=======
-					String line = receiveFromClient.readLine();
-					if (line != null) {
-						processMessage(line);
->>>>>>> ca5b2a3c96ec09dddfaf1fc6a15ce6d921026be9
 					}
-					//PrintWriter sendToClient = new PrintWriter(clients.get(i).getOutputStream(), true);                   
-					//BufferedReader receiveFromClient = new BufferedReader(new InputStreamReader(clients.get(i).getInputStream()));
-					//System.out.println("Received communication from client. Port " + clients.get(i).getLocalPort());
 
-					//String line = receiveFromClient.readLine();
-					//if (line != null) {
-					//	System.out.println(line);
-					//}
 				}
 			}
 			catch (Exception e) {
@@ -133,7 +178,31 @@ public class WuuInstance {
 		}
 	}
 	
-	public void processMessage(String message) {
+	public void updateMatrix(ArrayList<EventRecord> clientLog, Integer clientid, ArrayList<ArrayList<Integer>> clientMatrix) {
+		for (int i = 0; i < tsMatrix.size(); i++) {
+			ArrayList<Integer> row = tsMatrix.get(id);
+			row.set(i, Math.max(tsMatrix.get(id).get(i), clientMatrix.get(clientid).get(i) ) );
+			tsMatrix.set(id, row);
+		}
+		for (int i = 0; i < tsMatrix.size(); i++) {
+			for (int j = 0; j < tsMatrix.size(); j++) {
+				ArrayList<Integer> row = tsMatrix.get(i);
+				row.set(j, Math.max(tsMatrix.get(i).get(j), clientMatrix.get(i).get(j) ) );
+				tsMatrix.set(id, row);
+			}
+		}
+		
+		for (int i = 0; i < tsMatrix.size(); i++) {
+			System.out.print("[\t");
+			for (int j = 0; j < tsMatrix.get(i).size(); j++) {
+				System.out.print(tsMatrix.get(i).get(j) + "\t");
+			}
+			System.out.print("]\n");
+		}
+		System.out.println();
+		for (int i = 0; i < log.size(); i++) {
+			System.out.println("Event");
+		}
 		
 	}
 	
@@ -161,4 +230,41 @@ public class WuuInstance {
 		}
 	}
 	
+	public static class AcceptClients implements Callable<Socket> {
+		ServerSocket server;
+
+		public AcceptClients(ServerSocket s) {
+			server = s;
+		}
+		
+		@Override
+	    public Socket call() throws Exception {
+				try {
+					return server.accept();
+				} catch (IOException e) {
+					System.out.println(e.getMessage());
+				}
+				return null;
+	    }
+
+	}
+	
+	public static class AcceptInput implements Callable<String> {
+		Scanner reader;
+
+		public AcceptInput() {
+			reader = new Scanner(System.in);
+		}
+		
+		@Override
+	    public String call() throws Exception {
+				try {
+					return reader.next();
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+				}
+				return null;
+	    }
+
+	}
 }

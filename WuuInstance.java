@@ -8,13 +8,9 @@ public class WuuInstance {
 	ServerSocket socket;
 	Integer port;
 	Boolean listening;
-
+	Boolean newCommand;
 	ArrayList<Socket> clients; //sends
-	ArrayList<DataInputStream> inStreams;
-
 	ArrayList<Socket> hosts; //receives
-	ArrayList<DataOutputStream> outStreams;
-
 	Integer id;
 	String username; 
  
@@ -27,16 +23,12 @@ public class WuuInstance {
 	
 	public WuuInstance(Integer portNumber, String name, Integer n) {
 		username = name;
-		port = portNumber;
-
-		clients = new ArrayList<Socket>(Collections.nCopies(n, null));
-		inStreams = new ArrayList<DataInputStream>(Collections.nCopies(n, null));
-		hosts = new ArrayList<Socket>(Collections.nCopies(n, null));
-		outStreams = new ArrayList<DataOutputStream>(Collections.nCopies(n, null));
-		
+		port = portNumber;		
+		clients = new ArrayList<Socket>();
+		hosts = new ArrayList<Socket>();
 		threadPool = Executors.newCachedThreadPool();
 		listening = false;
-
+		//TODO: Don't hard code size of array
 		tsMatrix = new ArrayList<ArrayList<Integer>>();
 		for (int i = 0; i < n; i++) {
 			ArrayList<Integer> timevec = new ArrayList<Integer>();
@@ -94,35 +86,33 @@ public class WuuInstance {
 	
 	public Socket acceptConnect() throws IOException {
         // create an open ended thread-pool
-        // wait for a client to connect
-		try {
-			Future<Socket> result = threadPool.submit(new AcceptClients(socket));
-			return result.get(10, TimeUnit.MILLISECONDS);
-		} catch (Exception e) {
-		
-		}
-		return null;
+                // wait for a client to connect
+				try {
+					Future<Socket> result = threadPool.submit(new AcceptClients(socket));
+					return result.get(10, TimeUnit.MILLISECONDS);
+				} catch (Exception e) {
+				
+				}
+				return null;
 	}
 
 	public ArrayList<EventRecord> getLogDiff(int proc) { //TODO
 		return new ArrayList<EventRecord>();
 	}
 
-	public void sendMessage() { //TODO
+	public void sendMessage() { //TODO:ESU
 		
 
 		for (int i = 0; i < hosts.size(); i++) {
 			Message message = new Message(getLogDiff(i), tsMatrix, id);
 			byte[] byteMessage = message.toBytes();
 			try {
-				//System.out.println("Sending Message: ");
-				//message.printMessage();
 				DataOutputStream dOut = new DataOutputStream(hosts.get(i).getOutputStream());
 				dOut.writeInt(byteMessage.length);
 				dOut.write(byteMessage);
 			}
 			catch (IOException e) {
-				System.out.println(e.getMessage());
+
 			}
 		}
 
