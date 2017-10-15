@@ -7,6 +7,7 @@ import java.util.concurrent.*;
 public class WuuInstance {
 	ServerSocket socket;
 	Integer port;
+	Boolean listening;
 	ArrayList<Socket> clients; //sends
 	ArrayList<Socket> hosts; //receives
 
@@ -25,7 +26,7 @@ public class WuuInstance {
 		clients = new ArrayList<Socket>();
 		hosts = new ArrayList<Socket>();
 		threadPool = Executors.newCachedThreadPool();
-
+		listening = false;
 		//TODO: Don't hard code size of array
 		tsMatrix = new ArrayList<ArrayList<Integer>>();
 		for (int i = 0; i < 3; i++) {
@@ -62,8 +63,14 @@ public class WuuInstance {
 
 
 				receiveMessages();
-				if (clientSocket == null) {
+				if (listening == false) {
 					clientSocket = acceptConnect();
+					if (clientSocket == null) {
+						listening = true;
+					}
+					else {
+						listening = false;
+					}
 				}
 				if (clientSocket != null) {
 					clients.add(clientSocket);
@@ -81,7 +88,7 @@ public class WuuInstance {
                 // wait for a client to connect
 				try {
 					Future<Socket> result = threadPool.submit(new AcceptClients(socket));
-					return result.get(10, TimeUnit.MILLISECONDS);
+					return result.get(100, TimeUnit.MILLISECONDS);
 				} catch (Exception e) {
 				
 				}
